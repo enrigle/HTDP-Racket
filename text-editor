@@ -1,0 +1,228 @@
+(require 2htdp/image)
+(require 2htdp/universe)
+;; water-balloon-starter.rkt
+; PROBLEM:
+; Design a World Program with Compound Data.You can choose to create a simple text editor, 
+; like a Google search bar, as demonstrated in the video.
+
+
+; ;; Domain Analysis
+; ;;Constant Information:
+; MTS
+; HEIGHT
+; WIDTH
+; CTR-Y
+; TEXT-COLOR
+; TEXT-SIZE
+; BAR-IMAGE
+; 
+; ;;Changing Information:
+; STRINGS
+; BAR-POSITION ;have to be at front while writting
+;              ;can be move among the characters
+; 
+; ;;big-bang options:
+; on-tick      ;move the bar
+; to-draw      ;render the characters
+; on-key       ;for deleting and moving among letters
+
+
+;; Constants
+(define HEIGHT 40)
+(define WIDTH  400)
+(define MTS (empty-scene WIDTH HEIGHT) )
+(define CTR-Y (/ HEIGHT 2) )
+(define T-COLOR "black")
+(define T-SIZE 20) 
+(define BAR-IMAGE (line 0 20 "red"))
+
+;;Data definitions
+(define-struct textCursor (text cursor) )
+;; textCursor is (make-textCursor String Number)
+;; interp. a textCursor is a text and a cursor position, which can be in any position
+
+(define textCursor-1 (make-textCursor "Hola" 4) )       ;Hola|
+(define textCursor-2 (make-textCursor "Hola!!" 3) )     ;Hol|a!!
+(define textCursor-3 (make-textCursor "!Hola!?!" 0) )   ;|!Hola!?!
+(define textCursor-4 (make-textCursor "!Hola!?!" 1) )   ;!|Hola!?!
+(define textCursor-5 (make-textCursor "!Holasdjkaljdalksjkaljkdaljdskladsa!?!" 1) )   ;!|Hola!?!
+
+#;
+(define (fn-for-textCursor tc)
+  (... (textCursor-text tc)       ;String
+       (textCursor-cursor tc)))   ;Number
+
+;; Template rules used:
+;;  - compound: 2 fields
+
+;; =================
+;; Functions:
+
+;; tc -> tc
+;; start the world with (main (make-textCursor "" 0))
+;; 
+(define (main tc)
+  (big-bang tc                                ; tc
+            (on-tick   bar-tock)              ; tc -> tc
+            (to-draw   render-string)         ; tc -> Image 
+            (on-key    handle-key)))          ; tc KeyEvent -> tc
+
+;; tc -> tc
+;; for each new string added to the editor, put the bar image in front
+(check-expect (bar-tock textCursor-1) (make-textCursor (textCursor-text textCursor-1) 
+                                                       (string-length (textCursor-text textCursor-1))))
+(check-expect (bar-tock textCursor-2) (make-textCursor (textCursor-text textCursor-2)
+                                                       (string-length (textCursor-text textCursor-2))))
+
+;(define (bar-tock tc) tc)   ;stub
+(define (bar-tock tc) 
+  (make-textCursor (textCursor-text tc) (string-length (textCursor-text tc))))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+;  tc -> Image
+;; render the string image and the cursor image at their corresponding position
+(check-expect (render-string textCursor-1) (place-image/align (text-cursor textCursor-1) (/ WIDTH 50) CTR-Y
+                                                        "left" "center" MTS))
+(check-expect (render-string textCursor-2) (place-image/align (text-cursor textCursor-2) (/ WIDTH 50) CTR-Y
+                                                        "left" "center" MTS))
+(check-expect (render-string textCursor-3) (place-image/align (text-cursor textCursor-3) (/ WIDTH 50) CTR-Y 
+                                                        "left" "center" MTS))
+(check-expect (render-string textCursor-4) (place-image/align (text-cursor textCursor-4) (/ WIDTH 50) CTR-Y 
+                                                              "left" "center" MTS))
+(check-expect (render-string textCursor-5) (place-image/align (text-cursor textCursor-5) (/ WIDTH 50) CTR-Y
+                                                              "left" "center" MTS))
+
+;(define (render-string tc) MTS) ;stub
+
+(define (render-string tc) 
+  (place-image/align (text-cursor tc) (/ WIDTH 50) CTR-Y 
+                      "left" "center" MTS))
+
+;; tc -> Image
+;; render the image with the cursor at the appropiate position
+
+(check-expect (text-cursor textCursor-1)
+              (beside (text (substring (textCursor-text textCursor-1) 0 (textCursor-cursor textCursor-1))
+                                         T-SIZE T-COLOR) BAR-IMAGE
+                                       (text (substring (textCursor-text textCursor-1) (textCursor-cursor textCursor-1) 
+                                                        (string-length (textCursor-text textCursor-1))) T-SIZE T-COLOR))) 
+
+(check-expect (text-cursor textCursor-2)
+              (beside (text (substring (textCursor-text textCursor-2) 0 (textCursor-cursor textCursor-2))
+                                         T-SIZE T-COLOR) BAR-IMAGE
+                                       (text (substring (textCursor-text textCursor-2) (textCursor-cursor textCursor-2) 
+                                                        (string-length (textCursor-text textCursor-2))) T-SIZE T-COLOR))) 
+
+(check-expect (text-cursor textCursor-3)
+              (beside (text (substring (textCursor-text textCursor-3) 0 (textCursor-cursor textCursor-3))
+                                         T-SIZE T-COLOR) BAR-IMAGE
+                                       (text (substring (textCursor-text textCursor-3) (textCursor-cursor textCursor-3) 
+                                                        (string-length (textCursor-text textCursor-3))) T-SIZE T-COLOR))) 
+
+(check-expect (text-cursor textCursor-4)
+              (beside (text (substring (textCursor-text textCursor-4) 0 (textCursor-cursor textCursor-4))
+                                         T-SIZE T-COLOR) BAR-IMAGE
+                                       (text (substring (textCursor-text textCursor-4) (textCursor-cursor textCursor-4)
+                                                        (string-length (textCursor-text textCursor-4))) T-SIZE T-COLOR))) 
+;(define (text-cursor tc) MTS)   ;stub
+(define (text-cursor tc)  
+  (beside (text (substring (textCursor-text tc) 0 (textCursor-cursor tc))
+                                         T-SIZE T-COLOR)
+                                       BAR-IMAGE
+                                       (text (substring (textCursor-text tc) (textCursor-cursor tc) 
+                                                        (string-length (textCursor-text tc)))
+                                             T-SIZE T-COLOR))) 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+;; tc KeyEvent -> tc
+;; render the rigth behavior of the keyboard
+(check-expect (handle-key textCursor-1 "a")     (make-textCursor (string-append (textCursor-text textCursor-1) "a")
+                                                             (string-length (textCursor-text textCursor-1))))
+(check-expect (handle-key textCursor-2 "A")     (make-textCursor (string-append (textCursor-text textCursor-2) "A")
+                                                             (string-length (textCursor-text textCursor-2))))
+(check-expect (handle-key textCursor-3 "*")     (make-textCursor (string-append (textCursor-text textCursor-3) "*")
+                                                             (string-length (textCursor-text textCursor-3))))
+(check-expect (handle-key textCursor-3 "left")  (make-textCursor (textCursor-text textCursor-3)
+                                                                (- (string-length (textCursor-text textCursor-3)) 1)))
+(check-expect (handle-key textCursor-3 "right") (make-textCursor (textCursor-text textCursor-3)
+                                                                 (string-length (textCursor-text textCursor-3))))
+(check-expect (handle-key textCursor-3 "shift") (make-textCursor (textCursor-text textCursor-3)
+                                                                 (string-length (textCursor-text textCursor-3))))
+(check-expect (handle-key textCursor-3 "up")    (make-textCursor (textCursor-text textCursor-3)
+                                                                 (string-length (textCursor-text textCursor-3))))
+(check-expect (handle-key textCursor-3 "down")  (make-textCursor (textCursor-text textCursor-3)
+                                                                 (string-length (textCursor-text textCursor-3))))
+(check-expect (handle-key textCursor-4 "\b")    (make-textCursor (substring (textCursor-text textCursor-4) 0 
+                                                                            ( - (string-length (textCursor-text textCursor-4)) 1))
+                                                                 (- (string-length (textCursor-text textCursor-4)) 1)))
+
+;(define (handle-key tc ke) tc) ;stub
+
+#;
+(define (handle-key ws ke)
+  (cond [(key=? ke " ") (... ws)]
+        [else 
+         (... ws)]))
+
+;(string-alphabetic? s)
+(define (handle-key tc ke)
+  (cond [(key=? ke "left")  (make-textCursor (textCursor-text tc) 
+                                             (- (string-length (textCursor-text tc)) 1))]
+        [(key=? ke "right") (make-textCursor (textCursor-text tc)  
+                                             (if (> (+ (string-length (textCursor-text tc)) 1) (string-length (textCursor-text tc)))
+                                                 (string-length (textCursor-text tc))
+                                                 (+ (string-length (textCursor-text tc)) 1) ))]
+        [(key=? ke "shift") (make-textCursor (textCursor-text tc)  (string-length (textCursor-text tc)))]
+        [(key=? ke "up")    (make-textCursor (textCursor-text tc)  (string-length (textCursor-text tc)))]
+        [(key=? ke "down")  (make-textCursor (textCursor-text tc)  (string-length (textCursor-text tc)))]
+        [(key=? ke "\b")    (make-textCursor (substring (textCursor-text tc) 0 (non-negative ( - (string-length (textCursor-text tc)) 1)))
+                                             (non-negative (- (string-length (textCursor-text tc)) 1)))]
+        [(key=? ke ke)      (make-textCursor (string-append (textCursor-text tc) ke) (string-length (textCursor-text tc)))]
+        [else tc]))
+
+; Natural -> Natural[0, infinite)
+; produce zero if the number is greater than zero, produce same number otherwise
+(check-expect (non-negative -1) 0)
+(check-expect (non-negative  0) 0)
+(check-expect (non-negative  1) 1)
+
+;(define (non-negative n) 0) ;stub
+
+#;
+(define (fn-for-number n)
+  (... n))
+
+(define (non-negative n)
+  (cond [(< n 0) 0]
+        [else n]))
+    
